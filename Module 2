@@ -1,0 +1,45 @@
+package module2.exceptions;
+import java.io.*;
+
+// Custom exception class
+class InvalidUserException extends Exception {
+    public InvalidUserException(String msg) {
+        super(msg);
+    }
+}
+
+// Logger class to write notification info to a file
+class NotificationLogger {
+    public static void log(String message) {
+        // try-with-resources ensures the FileWriter is closed automatically
+        try (FileWriter fw = new FileWriter("notifications.log", true)) {
+            fw.write(message + "\n");
+            System.out.println("Logged: " + message);
+        } catch (IOException e) {
+            // Handle error if logging fails
+            System.out.println("Error logging notification: " + e.getMessage());
+        }
+    }
+}
+
+// Main class (matches file name)
+public class Module2_Exceptions {
+    public static void main(String[] args) {
+        String user = null; // Simulate missing user
+
+        try {
+            // Check for the error condition
+            if (user == null)
+                throw new InvalidUserException("User not found!"); // Throw the custom exception
+
+            // This line is skipped because the exception is thrown
+            System.out.println("Notification sent to " + user);
+
+        } catch (InvalidUserException e) {
+            // Catch the specific exception
+            System.out.println("Exception: " + e.getMessage());
+            // Log the error to a file
+            NotificationLogger.log("Error: " + e.getMessage());
+        }
+    }
+}
