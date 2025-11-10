@@ -1,0 +1,86 @@
+package module5.gui;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+
+// Demonstrates Swing GUI + MVC concept for Social Media Notification System
+public class Module5_GUI {
+
+    public static void main(String[] args) {
+        // Run GUI in the Event Dispatch Thread for thread safety
+        SwingUtilities.invokeLater(() -> new NotificationView().createAndShowGUI());
+    }
+}
+
+// ----- Model -----
+class NotificationModel {
+    private String latestNotification = "";
+
+    public void setNotification(String message) {
+        latestNotification = message;
+    }
+
+    public String getNotification() {
+        return latestNotification;
+    }
+}
+
+// ----- View + Controller -----
+class NotificationView {
+    private final NotificationModel model = new NotificationModel();
+
+    private JFrame frame;
+    private JTextArea notificationArea;
+    private JTextField inputField;
+    private JButton sendButton;
+
+    public void createAndShowGUI() {
+        frame = new JFrame("Social Media Notification System");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(500, 350);
+        frame.setLayout(new BorderLayout(10, 10));
+
+        // Title
+        JLabel title = new JLabel("📱 Social Media Notification System", JLabel.CENTER);
+        title.setFont(new Font("SansSerif", Font.BOLD, 18));
+        frame.add(title, BorderLayout.NORTH);
+
+        // Notification Display Area
+        notificationArea = new JTextArea();
+        notificationArea.setEditable(false);
+        notificationArea.setFont(new Font("Monospaced", Font.PLAIN, 14));
+        frame.add(new JScrollPane(notificationArea), BorderLayout.CENTER);
+
+        // Input area at bottom
+        JPanel bottomPanel = new JPanel(new BorderLayout(5, 5));
+        inputField = new JTextField();
+        inputField.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        sendButton = new JButton("Send Notification");
+        sendButton.setFont(new Font("SansSerif", Font.BOLD, 14));
+
+        // Action Listener (Controller)
+        sendButton.addActionListener(e -> sendNotification());
+
+        bottomPanel.add(inputField, BorderLayout.CENTER);
+        bottomPanel.add(sendButton, BorderLayout.EAST);
+        frame.add(bottomPanel, BorderLayout.SOUTH);
+
+        // Center the window
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
+    }
+
+    private void sendNotification() {
+        String message = inputField.getText().trim();
+        if (message.isEmpty()) {
+            JOptionPane.showMessageDialog(frame, "Please enter a notification message!");
+            return;
+        }
+
+        // Update model and display in view
+        model.setNotification(message);
+        notificationArea.append("📢 New Notification: " + model.getNotification() + "\n");
+        inputField.setText("");
+    }
+}
