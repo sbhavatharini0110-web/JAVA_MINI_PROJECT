@@ -1,0 +1,36 @@
+package module3.generics;
+import java.util.*;
+
+class NotificationManager<T> {
+    private List<T> notifications = Collections.synchronizedList(new ArrayList<>());
+
+    public void add(T item) { notifications.add(item); }
+    public void showAll() { notifications.forEach(System.out::println); }
+}
+
+class NotificationTask extends Thread {
+    private String message;
+    public NotificationTask(String message) { this.message = message; }
+
+    @Override
+    public void run() {
+        System.out.println(Thread.currentThread().getName() + " sending: " + message);
+        try { Thread.sleep(500); } catch (InterruptedException e) {}
+    }
+}
+
+public class Module3_GenericsThreads {
+    public static void main(String[] args) {
+        NotificationManager<String> manager = new NotificationManager<>();
+        manager.add("Like Notification");
+        manager.add("Comment Notification");
+
+        NotificationTask t1 = new NotificationTask("New Message!");
+        NotificationTask t2 = new NotificationTask("Friend Request!");
+
+        t1.start();
+        t2.start();
+
+        manager.showAll();
+    }
+}
