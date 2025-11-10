@@ -1,0 +1,62 @@
+package module1.cores;
+
+abstract class Notification {
+    protected String message;
+    protected User recipient;
+
+    public Notification(String message, User recipient) {
+        this.message = message;
+        this.recipient = recipient;
+    }
+
+    public abstract void sendNotification();
+}
+
+class MessageNotification extends Notification {
+    public MessageNotification(String message, User recipient) {
+        super(message, recipient);
+    }
+
+    @Override
+    public void sendNotification() {
+        System.out.println("Message to " + recipient.getName() + ": " + message);
+    }
+}
+
+class FriendRequestNotification extends Notification {
+    public FriendRequestNotification(String message, User recipient) {
+        super(message, recipient);
+    }
+
+    @Override
+    public void sendNotification() {
+        System.out.println("Friend Request to " + recipient.getName() + ": " + message);
+    }
+}
+
+class User {
+    private String name;
+    private static int userCount = 0;
+
+    public User(String name) {
+        this.name = name;
+        userCount++;
+    }
+
+    public String getName() { return name; }
+    public static int getUserCount() { return userCount; }
+}
+
+public class Module1_OOP {
+    public static void main(String[] args) {
+        User alice = new User("Alice");
+
+        Notification n1 = new MessageNotification("Hello Alice!", alice);
+        n1.sendNotification();
+
+        Notification n2 = new FriendRequestNotification("John sent you a friend request", alice);
+        n2.sendNotification();
+
+        System.out.println("Total users: " + User.getUserCount());
+    }
+}
