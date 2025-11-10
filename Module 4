@@ -1,0 +1,113 @@
+package module4.networking;
+
+import java.io.*;
+import java.net.*;
+import java.sql.*;
+public class Module4_NetworkJDBC {
+
+    // Networking port (not conflicting with MySQL)
+    private static final int PORT = 5000;
+
+    // Database credentials
+    private static final String DB_URL = "jdbc:mysql://localhost:3306/testdb";
+    private static final String DB_USER = "root";
+    private static final String DB_PASS = "Quality@01";
+
+    public static void main(String[] args) {
+        System.out.println("🚀 Starting Social Media Notification (Networking + JDBC) Module...\n");
+
+        // Start Server and Client as separate threads
+        new Thread(Module4_NetworkJDBC::startServer, "Server-Thread").start();
+        new Thread(Module4_NetworkJDBC::startClient, "Client-Thread").start();
+
+        // Run JDBC fetch after networking
+        try {
+            Thread.sleep(3000); // Wait for server/client to finish
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        // Show notifications stored in DB
+        displayNotificationsFromDB();
+
+        System.out.println("\n✅ Module 4 execution completed successfully!");
+    }
+
+    // 1️⃣ Server: Receives message from client and inserts into DB
+    public static void startServer() {
+        try (ServerSocket serverSocket = new ServerSocket(PORT)) {
+            System.out.println("[SERVER] Started on port " + PORT + ". Waiting for client...");
+
+            Socket socket = serverSocket.accept();
+            System.out.println("[SERVER] Client connected from " + socket.getInetAddress());
+
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+                String message = in.readLine();
+                System.out.println("[SERVER] Received message: " + message);
+                insertNotificationToDB(message);
+            }
+
+        } catch (IOException e) {
+            System.err.println("[SERVER] Error: " + e.getMessage());
+        }
+    }
+
+    // 2️⃣ Client: Sends a notification message to the server
+    public static void startClient() {
+        try {
+            Thread.sleep(1000); // wait for server to start
+            System.out.println("[CLIENT] Connecting to server on localhost:" + PORT + "...");
+
+            try (Socket socket = new Socket("localhost", PORT);
+                 PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
+
+                String message = "Divya liked your story! (New Notification)";
+                out.println(message);
+                System.out.println("[CLIENT] Sent message: " + message);
+            }
+
+        } catch (IOException | InterruptedException e) {
+            System.err.println("[CLIENT] Error: " + e.getMessage());
+        }
+    }
+
+    // 3️⃣ Insert received notification into MySQL
+    private static void insertNotificationToDB(String message) {
+        String query = "INSERT INTO notifications (message) VALUES (?)";
+
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+
+            pstmt.setString(1, message);
+            pstmt.executeUpdate();
+            System.out.println("[DB] ✅ Notification saved to database.");
+
+        } catch (SQLException e) {
+            System.err.println("[DB] ❌ Failed to insert: " + e.getMessage());
+        }
+    }
+
+    // 4️⃣ Display all notifications from the database
+    private static void displayNotificationsFromDB() {
+        String query = "SELECT * FROM notifications ORDER BY created_at DESC";
+
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+
+            System.out.println("\n🗂️ Notifications stored in Database:");
+            System.out.println("-----------------------------------------------------------");
+            while (rs.next()) {
+                System.out.println(
+                    rs.getInt("id") + ". " +
+                    rs.getString("message") + "   [" +
+                    rs.getTimestamp("created_at") + "]"
+                );
+            }
+            System.out.println("-----------------------------------------------------------");
+
+        } catch (SQLException e) {
+            System.err.println("[DB] ❌ Error fetching data: " + e.getMessage());
+        }
+    }
+}
